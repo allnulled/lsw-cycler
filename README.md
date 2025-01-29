@@ -98,16 +98,19 @@ describe("LSW Cycler API Test", function (it) {
 
   it("can use returner", async function () {
     const result = await LswCycler.from({
+      nothing() {
+        return 1000;
+      },
       useSet() {
         return LswCycler.set(10);
       },
-      useReturner(param) {
+      useReturner(init) {
         return LswCycler.returner(function(output) {
-          return output + param;
+          return output + init + 1; // 10 (=output) + 100 + 1 === 111
         });
       },
-    }).run(["useSet", "useReturner"], 1);
-    ensure({ result }).is(11);
+    }).run(["nothing", "useSet", "useReturner"], 100);
+    ensure({ result }).is(111);
   });
 
 });
