@@ -52,12 +52,20 @@
       return new this.Set(value);
     }
 
-    constructor(obj) {
-      this.obj = obj;
+    constructor($object, exposedProps = []) {
+      this.$object = $object;
+      if(exposedProps === "*") {
+        Object.assign(this, $object);
+      } else {
+        for(let index=0; index<exposedProps.length; index++) {
+          const exposedProp = exposedProps[index];
+          this[exposedProp] = $object[exposedProp];
+        }
+      }
     }
 
-    static from(obj) {
-      return new LswCycler(obj);
+    static from(...args) {
+      return new this(...args);
     }
 
     async run(steps, parameters) {
@@ -66,11 +74,11 @@
       Iterate_cycle:
       for (let j = 0; j < steps.length; j++) {
         let step = steps[j];
-        let fn = this.obj[step];
+        let fn = this.$object[step];
         if (typeof fn !== "function") {
           throw new Error("Required step «" + step + "» to be a function on round " + j + " on «LswCycler.run»");
         }
-        const result = await fn.call(this.obj, parameters);
+        const result = await fn.call(this.$object, parameters);
         Apply_intercycle_signals: {
           if (result instanceof this.constructor.Set) {
             output = await result.value;
